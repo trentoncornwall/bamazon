@@ -17,7 +17,6 @@ let inventory = [];
 connection.connect(err => {
 	if (err) throw err;
 	mainMenu();
-	selectAll();
 });
 
 //* Inquirer Menus *//
@@ -37,6 +36,7 @@ function mainMenu() {
 					customer();
 					break;
 				case "Manager":
+					manager();
 					break;
 				case "Supervisor":
 					break;
@@ -45,7 +45,153 @@ function mainMenu() {
 			}
 		});
 }
+
+function manager() {
+	inquirer
+		.prompt([
+			{
+				type: "list",
+				name: "choice",
+				message: "Select One:",
+				choices: [
+					"View Products for Sale",
+					"View Low Inventory",
+					"Add to Inventory",
+					"Add New Product"
+				]
+			}
+		])
+		.then((answers, err) => {
+			switch (answers.choice) {
+				case "View Products for Sale":
+					managerViewAll();
+					break;
+				case "View Low Inventory":
+					managerViewLow();
+					break;
+				case "Add to Inventory":
+					managerAddInv();
+					break;
+				case "Add New Product":
+					managerNewProd();
+					break;
+
+				default:
+					break;
+			}
+		});
+}
+function managerViewAll() {
+	selectAll();
+	return mainMenu();
+}
+function managerViewLow() {
+	connection.query(
+		"SELECT * FROM products WHERE stock_quantity <= 5",
+		(err, res) => {
+			if (err) throw err;
+			printNeat(res);
+		}
+	);
+}
+function managerAddInv() {
+	selectAll();
+	inquirer
+		.prompt([
+			{
+				type: "input",
+				name: "itemid",
+				message: `Insert ITEM_ID you'd like to add:`,
+				validate: value => {
+					if (isNaN(value)) {
+						return truefalse;
+					}
+					return true;
+				}
+			},
+			{
+				type: "input",
+				name: "amount",
+				message: `How many units:`,
+				validate: value => {
+					if (isNaN(value)) {
+						return truefalse;
+					}
+					return true;
+				}
+			}
+		])
+		.then(response => {
+			resItem = parseInt(response.itemid, 10);
+			resAmount = parseInt(response.amount, 10);
+			inventory.forEach(element => {
+				if (element.item_id === resItem) {
+					newAmount = element.stock_quantity + resAmount;
+					return add(resItem, newAmount);
+				}
+			});
+		});
+}
+
+function managerNewProd() {
+	inquirer
+		.prompt([
+			{
+				type: "input",
+				name: "itemname",
+				message: `Product Name:`
+			},
+			{
+				type: "input",
+				name: "department",
+				message: "Department:"
+			},
+			{
+				type: "input",
+				name: "price",
+				message: `Price:`,
+				validate: value => {
+					if (isNaN(value)) {
+						return truefalse;
+					}
+					return true;
+				}
+			},
+			{
+				type: "input",
+				name: "stock",
+				message: `Amount:`,
+				validate: value => {
+					if (isNaN(value)) {
+						return truefalse;
+					}
+					return true;
+				}
+			}
+		])
+		.then(response => {
+			product_name = response.itemname;
+			department = response.department;
+			price = parseInt(response.price, 10);
+			stock = parseInt(response.stock, 10);
+			connection.query(
+				`INSERT INTO products SET ?`,
+				{
+					product_name: product_name,
+					department_name: department,
+					price: price,
+					stock_quantity: stock
+				},
+				(err, res) => {
+					if (err) throw err;
+					console.log(`\nAdded ${stock} of ${product_name} to Products`);
+				}
+			);
+		});
+}
+
 function customer() {
+	selectAll();
 	inquirer
 		.prompt([
 			{
@@ -87,7 +233,15 @@ function customer() {
 			});
 		});
 }
-
+function add(resitem, newAmount) {
+	connection.query(
+		`UPDATE products SET stock_quantity=${newAmount} WHERE item_id=${resitem}`,
+		(err, res) => {
+			if (err) throw err;
+			selectAll();
+		}
+	);
+}
 function buy(item, newAmount, purchaseCost) {
 	connection.query(
 		`UPDATE products SET stock_quantity=${newAmount} WHERE item_id=${item}`,

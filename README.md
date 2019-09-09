@@ -17,9 +17,13 @@ You'll be given two choices:
 2. Manager
 
 1.a - Purchase Items - input item_id & amount to purchase
+
 2.a - View Products for Sale - View all products
+
 2.b - View Low Inventory - Views only products with stock quantity less then 5
+
 3.c - Add to Inventory - Purchase more items for a current product
+
 4.d - Add a new Product - Add a new product, department, price, and stock quantity
 
 ## Sample DB:

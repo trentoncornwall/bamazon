@@ -7,7 +7,7 @@ const connection = mysql.createConnection({
 	host: "localhost",
 	port: 3306,
 	user: "root",
-	password: "rootpassword",
+	password: "",
 	database: "bamazon_DB"
 });
 
@@ -22,14 +22,12 @@ connection.connect(err => {
 //* Inquirer Menus *//
 function mainMenu() {
 	inquirer
-		.prompt([
-			{
-				type: "list",
-				name: "choice",
-				message: "Select One:",
-				choices: ["Customer", "Manager", "Supervisor"]
-			}
-		])
+		.prompt([{
+			type: "list",
+			name: "choice",
+			message: "Select One:",
+			choices: ["Customer", "Manager"]
+		}])
 		.then((answers, err) => {
 			switch (answers.choice) {
 				case "Customer":
@@ -37,8 +35,6 @@ function mainMenu() {
 					break;
 				case "Manager":
 					manager();
-					break;
-				case "Supervisor":
 					break;
 				default:
 					break;
@@ -48,19 +44,17 @@ function mainMenu() {
 
 function manager() {
 	inquirer
-		.prompt([
-			{
-				type: "list",
-				name: "choice",
-				message: "Select One:",
-				choices: [
-					"View Products for Sale",
-					"View Low Inventory",
-					"Add to Inventory",
-					"Add New Product"
-				]
-			}
-		])
+		.prompt([{
+			type: "list",
+			name: "choice",
+			message: "Select One:",
+			choices: [
+				"View Products for Sale",
+				"View Low Inventory",
+				"Add to Inventory",
+				"Add New Product"
+			]
+		}])
 		.then((answers, err) => {
 			switch (answers.choice) {
 				case "View Products for Sale":
@@ -81,10 +75,12 @@ function manager() {
 			}
 		});
 }
+
 function managerViewAll() {
 	selectAll();
 	return mainMenu();
 }
+
 function managerViewLow() {
 	connection.query(
 		"SELECT * FROM products WHERE stock_quantity <= 5",
@@ -94,11 +90,11 @@ function managerViewLow() {
 		}
 	);
 }
+
 function managerAddInv() {
 	selectAll();
 	inquirer
-		.prompt([
-			{
+		.prompt([{
 				type: "input",
 				name: "itemid",
 				message: `Insert ITEM_ID you'd like to add:`,
@@ -135,8 +131,7 @@ function managerAddInv() {
 
 function managerNewProd() {
 	inquirer
-		.prompt([
-			{
+		.prompt([{
 				type: "input",
 				name: "itemname",
 				message: `Product Name:`
@@ -175,8 +170,7 @@ function managerNewProd() {
 			price = parseInt(response.price, 10);
 			stock = parseInt(response.stock, 10);
 			connection.query(
-				`INSERT INTO products SET ?`,
-				{
+				`INSERT INTO products SET ?`, {
 					product_name: product_name,
 					department_name: department,
 					price: price,
@@ -193,8 +187,7 @@ function managerNewProd() {
 function customer() {
 	selectAll();
 	inquirer
-		.prompt([
-			{
+		.prompt([{
 				type: "input",
 				name: "itemid",
 				message: `Insert ITEM_ID of your purchase:`,
@@ -233,6 +226,7 @@ function customer() {
 			});
 		});
 }
+
 function add(resitem, newAmount) {
 	connection.query(
 		`UPDATE products SET stock_quantity=${newAmount} WHERE item_id=${resitem}`,
@@ -242,6 +236,7 @@ function add(resitem, newAmount) {
 		}
 	);
 }
+
 function buy(item, newAmount, purchaseCost) {
 	connection.query(
 		`UPDATE products SET stock_quantity=${newAmount} WHERE item_id=${item}`,
@@ -256,7 +251,11 @@ function printNeat(x) {
 	console.log("\n\n");
 	console.log(
 		columnify(x, {
-			config: { item_id: { align: "right" } },
+			config: {
+				item_id: {
+					align: "right"
+				}
+			},
 			columnSplitter: " | ",
 			columns: [
 				"item_id",
@@ -274,6 +273,7 @@ function selectAll() {
 	connection.query("SELECT * FROM products", (err, res) => {
 		if (err) throw err;
 		inventory = [];
+
 		function PopInv(
 			item_id,
 			product_name,
@@ -287,7 +287,7 @@ function selectAll() {
 			this.price = price;
 			this.stock_quantity = stock_quantity;
 
-			this.pushInv = function() {
+			this.pushInv = function () {
 				inventory.push({
 					item_id: this.item_id,
 					product_name: this.product_name,
